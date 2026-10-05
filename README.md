@@ -80,7 +80,3 @@ It emphasizes:
 
 Current AI systems work should be understood as design, prototyping, experimentation, and early-stage implementation. The portfolio does not claim sole ownership of production-scale platforms unless explicitly supported by the underlying experience.
 
-
-## License
-
-This repository is intended as a personal portfolio project for Vineeth Kumar Dodda. Add a license only if the repository is intended for reuse by others
