@@ -1,44 +1,27 @@
-const menu = document.getElementById("menu");
-const nav = document.getElementById("nav");
-
-if (menu && nav) {
-  const setMenuOpen = (isOpen) => {
-    nav.classList.toggle("open", isOpen);
-    menu.setAttribute("aria-expanded", String(isOpen));
-    menu.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-  };
-
-  menu.addEventListener("click", () => {
-    setMenuOpen(!nav.classList.contains("open"));
-  });
-
-  nav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => setMenuOpen(false));
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      setMenuOpen(false);
-    }
-  });
-}
-
-const revealTargets = document.querySelectorAll(".card,.project,.timeline article");
-
-if ("IntersectionObserver" in window) {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("seen");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.08 }
-  );
-
-  revealTargets.forEach((target) => observer.observe(target));
-} else {
-  revealTargets.forEach((target) => target.classList.add("seen"));
-}
+(() => {
+  const root = document.documentElement;
+  const menu = document.getElementById('menu'), nav = document.getElementById('nav');
+  const setMenu = open => { nav.classList.toggle('open',open); menu.setAttribute('aria-expanded',String(open)); menu.setAttribute('aria-label',open?'Close menu':'Open menu'); };
+  menu.addEventListener('click',()=>setMenu(!nav.classList.contains('open')));
+  nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>setMenu(false)));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&nav.classList.contains('open')){setMenu(false);menu.focus();}});
+  document.addEventListener('click',e=>{if(!e.target.closest('header'))setMenu(false);});
+  matchMedia('(min-width:701px)').addEventListener('change',e=>{if(e.matches)setMenu(false);});
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)'), fine=matchMedia('(hover:hover) and (pointer:fine)');
+  let preference=null, enabled=false;
+  try{preference=localStorage.getItem('portfolio-motion');}catch{}
+  const toggle=document.getElementById('motion-toggle');
+  function apply(){enabled=!reduced.matches&&preference!=='off';root.classList.toggle('motion-on',enabled);toggle.textContent=reduced.matches?'Motion off · system':enabled?'Motion on':'Motion off';toggle.setAttribute('aria-pressed',String(enabled));toggle.setAttribute('aria-label','Enable animations');toggle.disabled=reduced.matches;if(!enabled){document.getAnimations?.().forEach(a=>a.cancel());document.querySelectorAll('.project').forEach(el=>{el.style.removeProperty('--rx');el.style.removeProperty('--ry');});}}
+  toggle.addEventListener('click',()=>{preference=enabled?'off':'on';try{localStorage.setItem('portfolio-motion',preference);}catch{}apply();});
+  reduced.addEventListener('change',apply);apply();
+  function reveal(el,delay=0){if(enabled&&el.animate)el.animate([{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'translateY(0)'}],{duration:650,delay,easing:'cubic-bezier(.2,.75,.25,1)',fill:'backwards'});}
+  document.querySelectorAll('.hero-copy > *, .focus-panel').forEach((el,i)=>reveal(el,Math.min(i*70,350)));
+  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){reveal(entry.target);observer.unobserve(entry.target);}}),{threshold:.08});document.querySelectorAll('.section-head,.timeline article,.project,.skill-grid .card,.edu,.training,.writing a,.contact-card').forEach(el=>observer.observe(el));const visibility=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('in-view',e.isIntersecting)));visibility.observe(document.querySelector('.focus-panel'));}
+  document.addEventListener('visibilitychange',()=>root.classList.toggle('tab-hidden',document.hidden));
+  const profiles={ai:{label:'AGENTIC AI & ORCHESTRATION',title:'Reasoning with boundaries.',description:'Specialist models, structured handoffs, and human approval around consequential actions.',steps:['Understand the context','Orchestrate specialists','Validate before action']},security:{label:'APPLICATION & AI SECURITY',title:'Test the trust boundary.',description:'Manual web and API investigation, adversarial LLM testing, and evidence-led reporting.',steps:['Map the attack surface','Test controls and assumptions','Document evidence and remediation']},research:{label:'EVIDENCE & EVALUATION',title:'Make the result inspectable.',description:'From MSc command-injection research to ERA: define the question, examine the evidence, and record limitations.',steps:['Formulate the question','Evaluate the evidence','Report results and limitations']}};
+  document.querySelectorAll('[data-focus]').forEach(button=>button.addEventListener('click',()=>{const p=profiles[button.dataset.focus];document.querySelectorAll('[data-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));document.getElementById('focus-label').textContent=p.label;document.getElementById('focus-title').textContent=p.title;document.getElementById('focus-description').textContent=p.description;p.steps.forEach((text,i)=>document.getElementById('step-'+(i+1)).textContent=text);reveal(document.querySelector('.focus-content'));document.querySelectorAll('.focus-flow li').forEach((el,i)=>reveal(el,i*80));}));
+  const cards=[...document.querySelectorAll('.project[data-category]')];
+  document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{const category=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));let count=0;cards.forEach(card=>{card.hidden=category!=='all'&&!card.dataset.category.split(' ').includes(category);if(!card.hidden){reveal(card,Math.min(count*50,200));count++;}});document.getElementById('project-count').textContent=count+' projects · '+button.textContent;}));
+  cards.forEach(card=>{let frame=0;card.addEventListener('pointermove',e=>{if(!enabled||!fine.matches)return;cancelAnimationFrame(frame);const x=e.clientX,y=e.clientY;frame=requestAnimationFrame(()=>{if(!enabled)return;const b=card.getBoundingClientRect();card.style.setProperty('--rx',((y-b.top)/b.height-.5)*-2+'deg');card.style.setProperty('--ry',((x-b.left)/b.width-.5)*2+'deg');});});card.addEventListener('pointerleave',()=>{cancelAnimationFrame(frame);card.style.removeProperty('--rx');card.style.removeProperty('--ry');});card.querySelector('details')?.addEventListener('toggle',e=>{if(e.target.open)reveal(e.target.querySelector('p'));});});
+  document.querySelectorAll('[data-js-control]').forEach(button=>{if(button!==toggle)button.disabled=false;});
+})();

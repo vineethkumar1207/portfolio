@@ -1,0 +1,4 @@
+# Portfolio design
+Preserve the original navy, mint and blue palette, Inter headings/body and JetBrains Mono utility typography. Keep the existing responsive navigation and timeline. Add a focus explorer in the hero, category filters and native expandable project scopes; all content is present in static HTML. Use brief entrance reveals, restrained pointer tilt and visible workflow connections. Content never stays hidden awaiting JavaScript. The footer motion control stores a local opt-out; system reduced motion always wins. Pause ambient animation on hidden tabs and when the workflow panel is offscreen.
+
+Business content is reconciled in CONTENT-RECONCILIATION.md. Résumé distinctions, report outcomes, dates, academic/training labels and prototype status take precedence over marketing phrasing. Runtime colours live in style.css :root. No forms, accounts, analytics, or new visitor data collection.
